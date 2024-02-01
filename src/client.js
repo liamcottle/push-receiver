@@ -211,8 +211,8 @@ module.exports = class Client extends EventEmitter {
     // Send notification
     this.emit('ON_NOTIFICATION_RECEIVED', {
       notification : message,
-      // Needs to be saved by the client
       persistentId : object.persistentId,
+      object       : object,
     });
   }
 };
