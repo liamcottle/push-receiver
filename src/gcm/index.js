@@ -24,8 +24,8 @@ module.exports = {
   checkIn,
 };
 
-async function register(appId) {
-  const options = await checkIn();
+async function register(androidId, securityToken, appId) {
+  const options = await checkIn(androidId, securityToken);
   const credentials = await doRegister(options, appId);
   return credentials;
 }

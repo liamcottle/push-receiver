@@ -27,9 +27,11 @@ module.exports = class Client extends EventEmitter {
     proto = await load(path.resolve(__dirname, 'mcs.proto'));
   }
 
-  constructor(credentials, persistentIds) {
+  constructor(androidId, securityToken, persistentIds, keyHandler) {
     super();
-    this._credentials = credentials;
+    this._androidId = androidId;
+    this._securityToken = securityToken;
+    this._keyHandler = keyHandler;
     this._persistentIds = persistentIds || [];
     this._retryCount = 0;
     this._onSocketConnect = this._onSocketConnect.bind(this);
@@ -63,8 +65,8 @@ module.exports = class Client extends EventEmitter {
 
   async _checkIn() {
     return checkIn(
-      this._credentials.gcm.androidId,
-      this._credentials.gcm.securityToken
+      this._androidId,
+      this._securityToken,
     );
   }
 
@@ -98,18 +100,18 @@ module.exports = class Client extends EventEmitter {
   _loginBuffer() {
     const LoginRequestType = proto.lookupType('mcs_proto.LoginRequest');
     const hexAndroidId = Long.fromString(
-      this._credentials.gcm.androidId
+      this._androidId
     ).toString(16);
     const loginRequest = {
       adaptiveHeartbeat    : false,
       authService          : 2,
-      authToken            : this._credentials.gcm.securityToken,
+      authToken            : this._securityToken,
       id                   : 'chrome-63.0.3234.0',
       domain               : 'mcs.android.com',
       deviceId             : `android-${hexAndroidId}`,
       networkType          : 1,
-      resource             : this._credentials.gcm.androidId,
-      user                 : this._credentials.gcm.androidId,
+      resource             : this._androidId,
+      user                 : this._androidId,
       useRmq2              : true,
       setting              : [{ name : 'new_vc', value : '1' }],
       // Id of the last notification received
@@ -171,7 +173,18 @@ module.exports = class Client extends EventEmitter {
 
     let message;
     try {
-      message = decrypt(object, this._credentials.keys);
+
+      // find keys
+      const keys = this._keyHandler(object);
+      if(!keys){
+        console.warn('Message dropped. Keys not found!');
+        this._persistentIds.push(object.persistentId);
+        return;
+      }
+
+      // decrypt message
+      message = decrypt(object, keys);
+
     } catch (error) {
       switch (true) {
         case error.message.includes(

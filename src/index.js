@@ -6,30 +6,8 @@ module.exports = {
   register,
 };
 
-async function listen(credentials, notificationCallback) {
-  if (!credentials) {
-    throw new Error('Missing credentials');
-  }
-  if (!credentials.gcm) {
-    throw new Error('Missing gcm object in credentials');
-  }
-  if (!credentials.gcm.androidId) {
-    throw new Error('Missing gcm.androidId in credentials');
-  }
-  if (!credentials.gcm.securityToken) {
-    throw new Error('Missing gcm.securityToken in credentials');
-  }
-  if (!credentials.keys) {
-    throw new Error('Missing keys object in credentials');
-  }
-  if (!credentials.keys.privateKey) {
-    throw new Error('Missing keys.privateKey in credentials');
-  }
-  if (!credentials.keys.authSecret) {
-    throw new Error('Missing keys.authSecret in credentials');
-  }
-
-  const client = new Client(credentials, credentials.persistentIds);
+async function listen(androidId, securityToken, persistentIds, keyHandler, notificationCallback) {
+  const client = new Client(androidId, securityToken, persistentIds, keyHandler);
   client.on('ON_NOTIFICATION_RECEIVED', notificationCallback);
   client.connect();
   return client;
