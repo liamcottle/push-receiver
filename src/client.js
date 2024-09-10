@@ -27,11 +27,10 @@ module.exports = class Client extends EventEmitter {
     proto = await load(path.resolve(__dirname, 'mcs.proto'));
   }
 
-  constructor(androidId, securityToken, persistentIds, keyHandler) {
+  constructor(androidId, securityToken, persistentIds) {
     super();
     this._androidId = androidId;
     this._securityToken = securityToken;
-    this._keyHandler = keyHandler;
     this._persistentIds = persistentIds || [];
     this._retryCount = 0;
     this._onSocketConnect = this._onSocketConnect.bind(this);
@@ -173,14 +172,6 @@ module.exports = class Client extends EventEmitter {
 
     let message;
     try {
-
-      // find keys
-      const keys = this._keyHandler(object);
-      if(!keys){
-        console.warn('Message dropped. Keys not found!');
-        this._persistentIds.push(object.persistentId);
-        return;
-      }
 
       // decrypt message
       message = decrypt(object, keys);
