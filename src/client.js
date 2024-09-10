@@ -170,6 +170,13 @@ module.exports = class Client extends EventEmitter {
       return;
     }
 
+    // if crypto keys not provided, notification is probably not encrypted, so return message as is
+    if(!("crypto-key" in object.appData)){
+        this._persistentIds.push(object.persistentId);
+        this.emit('ON_DATA_RECEIVED', object);
+        return;
+    }
+
     let message;
     try {
 
