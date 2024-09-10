@@ -6,8 +6,8 @@ module.exports = {
   register,
 };
 
-async function listen(androidId, securityToken, persistentIds, keyHandler, notificationCallback) {
-  const client = new Client(androidId, securityToken, persistentIds, keyHandler);
+async function listen(androidId, securityToken, persistentIds, notificationCallback) {
+  const client = new Client(androidId, securityToken, persistentIds);
   client.on('ON_NOTIFICATION_RECEIVED', notificationCallback);
   client.connect();
   return client;
